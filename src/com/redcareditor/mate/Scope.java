@@ -54,8 +54,8 @@ public class Scope {
 //		System.out.printf("scopeAt(%d, %d) isOpen:%s\n", line, lineOffset, isOpen);
 		TextLocation loc = new TextLocation(line, lineOffset);
 		TextLocation start = startLoc();
-		if (TextLocation.lte(start, loc) || parent == null) {
-			if (isOpen || TextLocation.gte(endLoc(), loc)) {
+		if (start.compareTo(loc) <= 0 || parent == null) {
+			if (isOpen ||  endLoc().compareTo(loc) >= 0) {
 				if (children.size() == 0) {
 					return this;
 				}
@@ -76,7 +76,7 @@ public class Scope {
 	}
 	
 	private boolean containsLoc(TextLocation loc) {
-		if (TextLocation.lte(startLoc(), loc) && TextLocation.gt(endLoc(), loc))
+		if (startLoc().compareTo(loc) <= 0 && endLoc().compareTo(loc) > 0)
 			return true;
 		else 
 			return false;
@@ -139,7 +139,7 @@ public class Scope {
 			return null;
 		
 		for (Scope child : children) {
-			if (TextLocation.gte(child.startLoc(), loc)) {
+			if (child.startLoc().compareTo(loc) >= 0) {
 				return child;
 			}
 		}

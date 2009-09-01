@@ -153,13 +153,13 @@ public class Parser {
 		System.out.printf("p%d, ", lineIx);
 		if (lineIx > this.parsedUpto)
 			this.parsedUpto = lineIx;
-		Scope startScope = this.root.scopeAt(lineIx, 0);
+		Scope startScope = this.root.scopeAt(new TextLocation(lineIx, 0));
 		if (startScope != null) {
 //			System.out.printf("startScope is: %s\n", startScope.name);
 			startScope = startScope.containingDoubleScope(lineIx);
 		}
 		System.out.printf("startScope is: %s\n", startScope.name);
-		Scope endScope1 = this.root.scopeAt(lineIx, Integer.MAX_VALUE);
+		Scope endScope1 = this.root.scopeAt(new TextLocation(lineIx, Integer.MAX_VALUE));
 //		System.out.printf("endScope1: %s\n", endScope1.name);
 		if (endScope1 != null)
 			endScope1 = endScope1.containingDoubleScope(lineIx);
@@ -198,7 +198,7 @@ public class Parser {
 			scanner.position = m.match.getCapture(0).end;
 		}
 		clearLine(lineIx, startScope, allScopes, closedScopes, removedScopes);
-		Scope endScope2 = this.root.scopeAt(lineIx, Integer.MAX_VALUE);
+		Scope endScope2 = this.root.scopeAt(new TextLocation(lineIx, Integer.MAX_VALUE));
 		if (endScope2 != null)
 			endScope2 = endScope2.containingDoubleScope(lineIx);
 		// System.out.printf("end_scope2: %s\n", endScope2.name);

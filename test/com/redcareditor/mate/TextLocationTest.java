@@ -30,10 +30,10 @@ public class TextLocationTest {
 		TextLocation l1 = new TextLocation(9, 10);
 		TextLocation l2 = new TextLocation(10, 10);
 		
-		assertEquals(-1, l1.compareTo(l2));
+		assertTrue(l1.compareTo(l2) < 0);
 		
 		TextLocation l3 = new TextLocation(9, 11);
-		assertEquals(-1, l1.compareTo(l3));
+		assertTrue(l1.compareTo(l3) < 0);
 	}
 	
 	@Test
@@ -41,9 +41,9 @@ public class TextLocationTest {
 		TextLocation l1 = new TextLocation(10,10);
 		TextLocation l2 = new TextLocation(9, 10);
 		
-		assertEquals(1, l1.compareTo(l2));
+		assertTrue(l1.compareTo(l2) > 0);
 		
 		TextLocation l3 = new TextLocation(10, 3);
-		assertEquals(1, l1.compareTo(l3));
+		assertTrue(l1.compareTo(l3) > 0);
 	}
 }

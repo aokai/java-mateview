@@ -25,6 +25,10 @@ public class Range implements Comparable<Range> {
 			return start <= other.end + 1;
 		}
 	}
+	
+	public int lenght(){
+		return end - start;
+	}
 
 	public int compareTo(Range o) {
 		int compareStart = start - o.start;

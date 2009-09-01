@@ -46,7 +46,7 @@ public class Bundle {
 		}
 		bundles = new ArrayList<Bundle>();
 		for (String bundleDir : bundleDirs(textmateDir)) {
-			Bundle bundle = new Bundle(bundleDir.split("\\.")[0]);
+			Bundle bundle = new Bundle(bundlemDir.split("\\.")[0]);
 			bundles.add(bundle);
 			File syntaxDir = new File(textmateDir + "/Bundles/" + bundleDir + "/Syntaxes");
 			if (syntaxDir.exists()) {

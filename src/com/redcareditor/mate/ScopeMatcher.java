@@ -8,16 +8,30 @@ import com.redcareditor.onig.Range;
 import com.redcareditor.onig.Rx;
 
 public class ScopeMatcher {
-	public Rx pos_rx;
-	public List<Rx> neg_rxs;
+	public Rx positiveRegExp;
+	public List<Rx> negativeRegExps;
 
+	public Match testMatchRe(String scopeString) {
+		Match m = positiveRegExp.search(scopeString);
+		if (m != null) {
+			for (Rx negRx : negativeRegExps) {
+				Match m1 = negRx.search(scopeString);
+				
+				if (m1 != null) {
+					return null;
+				}
+			}
+			return m;
+		}
+		return null;
+	}
+	
 	public static List<Integer> occurrences(String target, String find) {
 		List<Integer> positions = new ArrayList<Integer>();
-		int fromIndex = 0;
-		int newIndex = -1;
-		while ((newIndex = target.indexOf(find, fromIndex)) != -1) {
-			positions.add(newIndex);
-			fromIndex = newIndex + 1;
+		int i = 0;
+		while ((i = target.indexOf(find, i)) != -1) {
+			positions.add(i);
+			i++;
 		}
 		return positions;
 	}
@@ -25,34 +39,25 @@ public class ScopeMatcher {
 	// returns 1 if m1 is better than m2, -1 if m1 is worse than m2, 0 if
 	// equally good
 	public static int compareMatch(String scopeString, Match m1, Match m2) {
-		List<Integer> spaceIxs = occurrences(scopeString, " ");
+		List<Integer> positionsOfSpacesInScope = occurrences(scopeString, " ");
 		int max_cap1 = m1.numCaptures();
 		int max_cap2 = m2.numCaptures();
-		int cap1_ix, cap1_el_ix, len1;
-		int cap2_ix, cap2_el_ix, len2;
+		int cap1_el_ix;
+		int cap2_el_ix;
 		for (int i = 0; i < Math.min(max_cap1, max_cap2); i++) {
 			// first try element depth:
 			Range capture1 = m1.getCapture(max_cap1 - 1 - i);
 			Range capture2 = m2.getCapture(max_cap2 - 1 - i);
 			
-			cap1_ix = capture1.start;
-			cap2_ix = capture2.start;
-			cap1_el_ix = ScopeMatcher.sorted_ix(spaceIxs, cap1_ix);
-			cap2_el_ix = ScopeMatcher.sorted_ix(spaceIxs, cap2_ix);
+			cap1_el_ix = ScopeMatcher.sorted_ix(positionsOfSpacesInScope, capture1.start);
+			cap2_el_ix = ScopeMatcher.sorted_ix(positionsOfSpacesInScope, capture2.start);
 			if (cap1_el_ix > cap2_el_ix) {
 				return 1;
 			} else if (cap1_el_ix < cap2_el_ix) {
 				return -1;
 			}
 
-			// next try length of match
-			len1 = capture1.end - cap1_ix;
-			len2 = capture2.end - cap2_ix;
-			if (len1 > len2) {
-				return 1;
-			} else if (len1 < len2) {
-				return -1;
-			}
+			return capture1.lenght() - capture2.lenght();
 		}
 		return 0;
 	}
@@ -110,8 +115,8 @@ public class ScopeMatcher {
 	public static Match match(String selectorString, String scopeString) {
 		List<ScopeMatcher> matchers = ScopeMatcher.compile(selectorString);
 		for (ScopeMatcher matcher : matchers) {
-			Match m;
-			if ((m = testMatchRe(matcher.pos_rx, matcher.neg_rxs, scopeString)) != null)
+			Match m = matcher.testMatchRe(scopeString);
+			if (m  != null)
 				return m;
 		}
 		return null;
@@ -124,39 +129,23 @@ public class ScopeMatcher {
 		System.out.printf("match: selector: '%s'\n", selectorString);
 		for (String selectorString1 : scopeOrs1) {
 			ScopeMatcher m = new ScopeMatcher();
-			m.neg_rxs = new ArrayList<Rx>();
+			m.negativeRegExps = new ArrayList<Rx>();
 			String[] positivesAndNegatives = selectorString1.split(" -");
 			for (String subSelectorString : positivesAndNegatives) {
-				if (m.pos_rx == null) {
+				if (m.positiveRegExp == null) {
 					String s1 = subSelectorString.trim().replaceAll("\\.", "\\\\.");
 					String s2 = s1.replaceAll(" ", ").* .*(");
 					System.out.printf("positive '%s'\n", "(" + s2 + ")");
-					m.pos_rx = Rx.createRx("(" + s2 + ")");
+					m.positiveRegExp = Rx.createRx("(" + s2 + ")");
 				} else {
 					String s1 = subSelectorString.trim().replaceAll("\\.", "\\\\.");
 					String s2 = s1.trim().replaceAll(" ", ".* .*");
 					System.out.printf("negative '%s'\n", s2);
-					m.neg_rxs.add(Rx.createRx(s2));
+					m.negativeRegExps.add(Rx.createRx(s2));
 				}
 			}
 			ms.add(m);
 		}
 		return ms;
 	}
-
-	public static Match testMatchRe(Rx positiveSelectorRegex, List<Rx> negativeSelectorRegexes, String scopeString) {
-		Match m = positiveSelectorRegex.search(scopeString, 0, scopeString.length());
-		if (m != null) {
-			for (Rx negRx : negativeSelectorRegexes) {
-				Match m1 = negRx.search(scopeString, 0, scopeString.length());
-				if (m1 != null) {
-					return null;
-				}
-			}
-			return m;
-		} else {
-			return null;
-		}
-	}
-
 }

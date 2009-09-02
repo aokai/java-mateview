@@ -4,14 +4,10 @@ import org.eclipse.jface.text.Position;
 import org.eclipse.swt.custom.StyledText;
 
 public class TextLocation extends Position implements Comparable<Position> {
-	public int line;
-	public int lineOffset;
 	private MateText mateText;
 
 	public TextLocation(int line, int lineOffset, MateText mateText) {
 		super(computeOffset(mateText, line, lineOffset));
-		this.line = line;
-		this.lineOffset = lineOffset;
 		this.mateText = mateText;
 	}
 	
@@ -41,7 +37,7 @@ public class TextLocation extends Position implements Comparable<Position> {
 
 	@Override
 	public String toString() {
-		return String.format("{%d,%d}", line, lineOffset);
+		return String.format("{%d,%d}", getLine(), getLineOffset());
 	}
 	
 	private static int computeOffset(MateText mateText, int line, int offset){

@@ -173,8 +173,8 @@ public class Parser {
 		for (Marker m : scanner) {
 			Scope expectedScope = getExpectedScope(scanner.getCurrentScope(), lineIx, scanner.position);
 			if (expectedScope != null)
-				System.out.printf("expectedScope: %s (%d, %d)\n", expectedScope.name, expectedScope.start.line, 
-					           expectedScope.start.lineOffset);
+				System.out.printf("expectedScope: %s (%d, %d)\n", expectedScope.name, expectedScope.start.getLine(), 
+					           expectedScope.start.getLineOffset());
 			else
 				System.out.printf("no expected scope\n");
 			System.out.printf("  scope: %s (%d, %d) (line length: %d)\n", 

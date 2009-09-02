@@ -133,7 +133,7 @@ public class Scope implements Comparable<Scope>{
 			return location;
 		}
 		catch(BadLocationException e) {
-			System.out.printf("BadLocationException in Scope (%d, %d)\n", location.line, location.lineOffset);
+			System.out.printf("BadLocationException in Scope (%d, %d)\n", location.getLine(), location.getLineOffset());
 			e.printStackTrace();
 		}
 		return null;

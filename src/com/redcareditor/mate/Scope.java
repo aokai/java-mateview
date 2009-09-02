@@ -53,8 +53,9 @@ public class Scope implements Comparable<Scope>{
 	}
 	
 	public Scope scopeAt(TextLocation location){
-		if (start.compareTo(location) <= 0 || parent == null) {
-			if (isOpen ||  end.compareTo(location) >= 0) {
+		if ((getStart().compareTo(location) <= 0) || (parent == null)) {
+			
+			if (isOpen ||  getEnd().compareTo(location) >= 0) {
 				
 				for (Scope child : children) {
 					if (child.containsLoc(location)) {
@@ -63,16 +64,17 @@ public class Scope implements Comparable<Scope>{
 				}
 				return this;
 			}
+			
 		}
 		return null;
 	}
 	
 	private boolean containsLoc(TextLocation loc) {
-		return (start.compareTo(loc) <= 0) && (end.compareTo(loc) >= 0);
+		return (start.compareTo(loc) <= 0) && (end.compareTo(loc) > 0);
 	}
 
 	public Scope containingDoubleScope(int line) {
-		Scope scope = this;
+		/*Scope scope = this;
 		
 		while(scope.parent != null){
 			if(	!(scope.pattern instanceof SinglePattern) && 
@@ -81,8 +83,8 @@ public class Scope implements Comparable<Scope>{
 			){
 				return scope;
 			}
-		}
-		return null;
+		}*/
+		return this;
 	}
 	
 	public boolean surfaceIdenticalTo(Scope other) {
@@ -130,13 +132,12 @@ public class Scope implements Comparable<Scope>{
 		TextLocation location = new TextLocation(line,offset,mateText);
 		try {
 			mateText.getDocument().addPosition(location);
-			return location;
 		}
 		catch(BadLocationException e) {
 			System.out.printf("BadLocationException in Scope (%d, %d)\n", location.getLine(), location.getLineOffset());
 			e.printStackTrace();
 		}
-		return null;
+		return location;
 	}
 	
 	public void setStartPos(int line, int offset, boolean hasLeftGravity) {
@@ -155,6 +156,14 @@ public class Scope implements Comparable<Scope>{
 		this.end = createTextLocation(line, offset);
 	}
 	
+	public TextLocation getStart() {
+		return start != null ? start : new TextLocation(0,0,mateText);
+	}
+	
+	public TextLocation getEnd() {
+		return start != null ? start : new TextLocation(styledText.getCharCount(),mateText);
+	}
+	
 	public int startLine() {
 		if (start == null)
 			return 0;
@@ -166,14 +175,14 @@ public class Scope implements Comparable<Scope>{
 		if (end == null)
 			return styledText.getLineCount() - 1;
 		else
-			return styledText.getLineAtOffset(end.offset);
+			return styledText.getLineAtOffset(end.getOffset());
 	}
 
 	public int startLineOffset() {
 		if (start == null)
 			return 0;
 		else
-			return start.offset - styledText.getOffsetAtLine(startLine());
+			return start.getOffset() - styledText.getOffsetAtLine(startLine());
 	}
 
 	public int innerEndLineOffset() {
@@ -234,7 +243,7 @@ public class Scope implements Comparable<Scope>{
 //		else {
 			prettyString.append(String.format(
 					"%d,%d",
-					endLine(), 
+					endLine(),
 					endLineOffset()));
 //		}
 		prettyString.append(")");

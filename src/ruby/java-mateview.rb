@@ -10,7 +10,7 @@ require 'rbconfig'
 if Config::CONFIG["host_os"] =~ /darwin/
   require 'osx/swt'
 else
-  require 'linux/swt'
+  require 'lib/linux/swt-linux'
 end
 
 require 'swt_wrapper'

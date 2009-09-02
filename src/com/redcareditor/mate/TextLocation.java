@@ -3,43 +3,28 @@ package com.redcareditor.mate;
 import org.eclipse.jface.text.Position;
 import org.eclipse.swt.custom.StyledText;
 
-public class TextLocation implements Comparable<TextLocation> {
+public class TextLocation extends Position implements Comparable<Position> {
 	public int line;
 	public int lineOffset;
+	private MateText mateText;
 
-	public TextLocation(int line, int lineOffset) {
+	public TextLocation(int line, int lineOffset, MateText mateText) {
+		super(computeOffset(mateText, line, lineOffset));
 		this.line = line;
 		this.lineOffset = lineOffset;
+		this.mateText = mateText;
 	}
 	
-	public static TextLocation fromPosition(Position position, StyledText document){
-		int line = document.getLineAtOffset(position.offset);
-		int lineOffset = position.offset - document.getOffsetAtLine(line);
-		
-		return new TextLocation(
-				line,
-				lineOffset
-		);
+	public int getLine(){
+		return mateText.getTextWidget().getLineAtOffset(offset);
+	}
+	
+	public int getLineOffset(){
+		return offset - mateText.getTextWidget().getOffsetAtLine(getLine());
 	}
 
-	public int compareTo(TextLocation o) {
-		if (line > o.line) {
-			return 1;
-		} else if (line < o.line) {
-			return -1;
-		} else {
-			if (lineOffset > o.lineOffset) {
-				return 1;
-			} else if (lineOffset < o.lineOffset) {
-				return -1;
-			} else {
-				return 0;
-			}
-		}
-	}
-	
-	public Position toPosition(StyledText document){
-		return new Position(document.getOffsetAtLine(line)+lineOffset,0);
+	public int compareTo(Position other) {
+		return offset - other.offset;
 	}
 	
 	@Override
@@ -49,9 +34,17 @@ public class TextLocation implements Comparable<TextLocation> {
 		}
 		return false;
 	}
+	
+	public boolean equals(int line, int offset){
+		return equals(new TextLocation(line,offset,mateText));
+	}
 
 	@Override
 	public String toString() {
 		return String.format("{%d,%d}", line, lineOffset);
+	}
+	
+	private static int computeOffset(MateText mateText, int line, int offset){
+		return mateText.getTextWidget().getOffsetAtLine(line)+offset;
 	}
 }

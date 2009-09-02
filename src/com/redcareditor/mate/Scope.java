@@ -24,10 +24,10 @@ public class Scope implements Comparable<Scope>{
 	public Match openMatch;
 	public Match closeMatch;
 	
-	public Position startPos;
-	public Position innerStartPos;
-	public Position innerEndPos;
-	public Position endPos;
+	public TextLocation start;
+	public TextLocation innerStart;
+	public TextLocation innerEnd;
+	public TextLocation end;
 	
 	public Rx closingRegex;
 	public String beginMatchString;
@@ -47,15 +47,18 @@ public class Scope implements Comparable<Scope>{
 		// TODO: port this method
 	}
 
-	public Scope scopeAt(TextLocation loc) {
-//		System.out.printf("scopeAt(%d, %d) isOpen:%s\n", line, lineOffset, isOpen);
-		TextLocation start = startLoc();
-		if (start.compareTo(loc) <= 0 || parent == null) {
-			if (isOpen ||  endLoc().compareTo(loc) >= 0) {
+	public Scope scopeAt(int line, int offset) {
+		TextLocation location = new TextLocation(line, offset, mateText);
+		return scopeAt(location);
+	}
+	
+	public Scope scopeAt(TextLocation location){
+		if (start.compareTo(location) <= 0 || parent == null) {
+			if (isOpen ||  end.compareTo(location) >= 0) {
 				
 				for (Scope child : children) {
-					if (child.containsLoc(loc)) {
-						return child.scopeAt(loc);
+					if (child.containsLoc(location)) {
+						return child.scopeAt(location);
 					}
 				}
 				return this;
@@ -65,7 +68,7 @@ public class Scope implements Comparable<Scope>{
 	}
 	
 	private boolean containsLoc(TextLocation loc) {
-		return (startLoc().compareTo(loc) <= 0) && (endLoc().compareTo(loc) >= 0);
+		return (start.compareTo(loc) <= 0) && (end.compareTo(loc) >= 0);
 	}
 
 	public Scope containingDoubleScope(int line) {
@@ -93,10 +96,10 @@ public class Scope implements Comparable<Scope>{
 	}
 
 	public boolean overlapsWith(Scope other) {
-		if(startLoc().compareTo(other.startLoc()) >= 0 ){
-			return startLoc().compareTo(other.endLoc()) <= 0;
+		if(start.compareTo(other.start) >= 0 ){
+			return start.compareTo(other.end) <= 0;
 		}else{
-			return other.startLoc().compareTo(endLoc()) <= 0;
+			return other.start.compareTo(end) <= 0;
 		}
 	}
 
@@ -112,97 +115,87 @@ public class Scope implements Comparable<Scope>{
 		return a.offset - b.offset;
 	}
 
-	public Scope firstChildAfter(TextLocation loc) {
+	public Scope firstChildAfter(int line, int offset) {
 //		stdout.printf("\"%s\".first_child_after(%d, %d)\n", name, loc.line, loc.line_offset);
+		TextLocation location = new TextLocation(line, offset, mateText);
 		for (Scope child : children) {
-			if (child.startLoc().compareTo(loc) >= 0) {
+			if (child.start.compareTo(location) >= 0) {
 				return child;
 			}
 		}
 		return null;
 	}
 
-	private Position makePosition(int line, int lineOffset) {
-		Position pos = new Position(styledText.getOffsetAtLine(line) + lineOffset, 0);
+	private TextLocation createTextLocation(int line, int offset) {
+		TextLocation location = new TextLocation(line,offset,mateText);
 		try {
-			mateText.getDocument().addPosition(pos);
+			mateText.getDocument().addPosition(location);
+			return location;
 		}
 		catch(BadLocationException e) {
-			System.out.printf("BadLocationException in Scope (%d, %d)\n", line, lineOffset);
+			System.out.printf("BadLocationException in Scope (%d, %d)\n", location.line, location.lineOffset);
 			e.printStackTrace();
 		}
-		return pos;
+		return null;
 	}
 	
-	public void setStartPos(int line, int lineOffset, boolean hasLeftGravity) {
-		this.startPos = makePosition(line, lineOffset);
+	public void setStartPos(int line, int offset, boolean hasLeftGravity) {
+		this.start = createTextLocation(line,offset);
 	}
 
-	public void setInnerStartPos(int line, int lineOffset, boolean hasLeftGravity) {
-		this.innerStartPos = makePosition(line, lineOffset);
+	public void setInnerStartPos(int line, int offset, boolean hasLeftGravity) {
+		this.innerStart = createTextLocation(line, offset);
 	}
 
-	public void setInnerEndPos(int line, int lineOffset, boolean c) {
-		this.innerEndPos = makePosition(line, lineOffset);
+	public void setInnerEndPos(int line, int offset, boolean c) {
+		this.innerEnd = createTextLocation(line, offset);
 	}
 
-	public void setEndPos(int line, int lineOffset, boolean c) {
-		this.endPos = makePosition(line, lineOffset);
-	}
-
-	public TextLocation startLoc() {
-		return TextLocation.fromPosition(startPos, styledText);
-	}
-
-	public TextLocation innerEndLoc() {
-		return TextLocation.fromPosition(innerEndPos, styledText);
-	}
-	
-	public TextLocation endLoc() {
-		return TextLocation.fromPosition(endPos, styledText);
+	public void setEndPos(int line, int offset, boolean c) {
+		this.end = createTextLocation(line, offset);
 	}
 	
 	public int startLine() {
-		if (startPos == null)
+		if (start == null)
 			return 0;
 		else
-			return styledText.getLineAtOffset(startPos.offset);
+			return styledText.getLineAtOffset(start.offset);
 	}
 
 	public int endLine() {
-		if (endPos == null)
+		if (end == null)
 			return styledText.getLineCount() - 1;
 		else
-			return styledText.getLineAtOffset(endPos.offset);
+			return styledText.getLineAtOffset(end.offset);
 	}
 
 	public int startLineOffset() {
-		if (startPos == null)
+		if (start == null)
 			return 0;
 		else
-			return startPos.offset - styledText.getOffsetAtLine(startLine());
+			return start.offset - styledText.getOffsetAtLine(startLine());
 	}
 
 	public int innerEndLineOffset() {
-		if (innerEndPos == null)
+		if (innerEnd == null)
 			return styledText.getCharCount();
 		else
-			return innerEndPos.offset - styledText.getOffsetAtLine(endLine());
+			return innerEnd.offset - styledText.getOffsetAtLine(endLine());
 	}
 	
 	public int endLineOffset() {
-		if (endPos == null)
+		if (end == null)
 			return styledText.getCharCount() - styledText.getOffsetAtLine(endLine());
 		else
-			return endPos.offset - styledText.getOffsetAtLine(endLine());
+			return end.offset - styledText.getOffsetAtLine(endLine());
 	}
 	
 	public int startOffset() {
-		return this.startPos.offset;
+		return this.start.offset;
 	}
 	
 	public int endOffset() {
-		return this.endPos.offset;
+		return this.end.offset;
 	}
 	
 	public String pretty(int indent) {
@@ -257,9 +250,9 @@ public class Scope implements Comparable<Scope>{
 	}
 
 	public int compareTo(Scope o) {
-		int startCompare = startLoc().compareTo(o.startLoc());
+		int startCompare = start.compareTo(o.start);
 		if(startCompare == 0){
-			return endLoc().compareTo(o.endLoc());
+			return end.compareTo(o.end);
 		}
 		return startCompare;
 	}

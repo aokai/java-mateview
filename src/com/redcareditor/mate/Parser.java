@@ -153,13 +153,13 @@ public class Parser {
 		System.out.printf("p%d, ", lineIx);
 		if (lineIx > this.parsedUpto)
 			this.parsedUpto = lineIx;
-		Scope startScope = this.root.scopeAt(new TextLocation(lineIx, 0));
+		Scope startScope = this.root.scopeAt(lineIx, 0);
 		if (startScope != null) {
 //			System.out.printf("startScope is: %s\n", startScope.name);
 			startScope = startScope.containingDoubleScope(lineIx);
 		}
 		System.out.printf("startScope is: %s\n", startScope.name);
-		Scope endScope1 = this.root.scopeAt(new TextLocation(lineIx, Integer.MAX_VALUE));
+		Scope endScope1 = this.root.scopeAt(lineIx, Integer.MAX_VALUE);
 //		System.out.printf("endScope1: %s\n", endScope1.name);
 		if (endScope1 != null)
 			endScope1 = endScope1.containingDoubleScope(lineIx);
@@ -173,8 +173,8 @@ public class Parser {
 		for (Marker m : scanner) {
 			Scope expectedScope = getExpectedScope(scanner.getCurrentScope(), lineIx, scanner.position);
 			if (expectedScope != null)
-				System.out.printf("expectedScope: %s (%d, %d)\n", expectedScope.name, expectedScope.startLoc().line, 
-					           expectedScope.startLoc().lineOffset);
+				System.out.printf("expectedScope: %s (%d, %d)\n", expectedScope.name, expectedScope.start.line, 
+					           expectedScope.start.lineOffset);
 			else
 				System.out.printf("no expected scope\n");
 			System.out.printf("  scope: %s (%d, %d) (line length: %d)\n", 
@@ -198,7 +198,7 @@ public class Parser {
 			scanner.position = m.match.getCapture(0).end;
 		}
 		clearLine(lineIx, startScope, allScopes, closedScopes, removedScopes);
-		Scope endScope2 = this.root.scopeAt(new TextLocation(lineIx, Integer.MAX_VALUE));
+		Scope endScope2 = this.root.scopeAt(lineIx, Integer.MAX_VALUE);
 		if (endScope2 != null)
 			endScope2 = endScope2.containingDoubleScope(lineIx);
 		// System.out.printf("end_scope2: %s\n", endScope2.name);
@@ -218,7 +218,7 @@ public class Parser {
 
 	public Scope getExpectedScope(Scope currentScope, int line, int lineOffset) {
 		System.out.printf("get_expected_scope(%s, %d, %d)\n", currentScope.name, line, lineOffset);
-		Scope expectedScope = currentScope.firstChildAfter(new TextLocation(line, lineOffset));
+		Scope expectedScope = currentScope.firstChildAfter(line, lineOffset);
 //		System.out.printf("first_child_after: %s\n", expectedScope.name);
 		assert(expectedScope != currentScope);
 		if (expectedScope != null) {
@@ -246,9 +246,9 @@ public class Parser {
 //				line_ix, m.from,
 //				scanner.current_scope.end_match_string, end_match_string);
 //		  
-		if (scanner.getCurrentScope().endPos != null &&
-				scanner.getCurrentScope().endLoc().equals(new TextLocation(lineIx, m.match.getCapture(0).end)) &&
-				scanner.getCurrentScope().innerEndLoc().equals(new TextLocation(lineIx, m.from)) &&
+		if (scanner.getCurrentScope().end != null &&
+				scanner.getCurrentScope().end.equals(lineIx, m.match.getCapture(0).end) &&
+				scanner.getCurrentScope().innerEnd.equals(lineIx, m.from) &&
 				scanner.getCurrentScope().endMatchString == endMatchString) {
 				// we have already parsed this line and this scope ends here
 

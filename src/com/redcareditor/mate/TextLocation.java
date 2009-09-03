@@ -62,7 +62,7 @@ public class TextLocation extends Position implements Comparable<Position> {
 	private static int computeLineLength(MateText text,int line){
 		StyledText st = text.getTextWidget();
 		// If this line is the last one set end off line to the length else to the nextline's offset -1
-		int endOffLineOffset = line+1 == st.getLineCount() ? st.getCharCount() : st.getOffsetAtLine(line+1)-1;
+		int endOffLineOffset = line+1 == st.getLineCount() ? st.getCharCount() : st.getOffsetAtLine(line+1);
 		return endOffLineOffset - st.getOffsetAtLine(line);
 	}
 }

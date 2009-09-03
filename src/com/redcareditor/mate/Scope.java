@@ -36,7 +36,7 @@ public class Scope implements Comparable<Scope>{
 	public Scope parent;
 	public SortedSet<Scope> children;
 	
-	public Scope(MateText mt, String name) {
+  	public Scope(MateText mt, String name) {
 		this.mateText = mt;
 		this.styledText = mt.getTextWidget();
 		this.name = name;
@@ -70,7 +70,7 @@ public class Scope implements Comparable<Scope>{
 	}
 	
 	private boolean containsLoc(TextLocation loc) {
-		return (start.compareTo(loc) <= 0) && (end.compareTo(loc) > 0);
+		return (getStart().compareTo(loc) <= 0) && (getEnd().compareTo(loc) > 0);
 	}
 
 	public Scope containingDoubleScope(int line) {
@@ -98,10 +98,10 @@ public class Scope implements Comparable<Scope>{
 	}
 
 	public boolean overlapsWith(Scope other) {
-		if(start.compareTo(other.start) >= 0 ){
-			return start.compareTo(other.end) <= 0;
+		if(getStart().compareTo(other.getStart()) >= 0 ){
+			return getStart().compareTo(other.getEnd()) <= 0;
 		}else{
-			return other.start.compareTo(end) <= 0;
+			return other.getStart().compareTo(getEnd()) <= 0;
 		}
 	}
 
@@ -161,7 +161,7 @@ public class Scope implements Comparable<Scope>{
 	}
 	
 	public TextLocation getEnd() {
-		return start != null ? start : new TextLocation(styledText.getCharCount(),mateText);
+		return start != null ? start : new TextLocation(styledText.getCharCount()-1,mateText);
 	}
 	
 	public int startLine() {
@@ -259,9 +259,9 @@ public class Scope implements Comparable<Scope>{
 	}
 
 	public int compareTo(Scope o) {
-		int startCompare = start.compareTo(o.start);
+		int startCompare = getStart().compareTo(o.getStart());
 		if(startCompare == 0){
-			return end.compareTo(o.end);
+			return getEnd().compareTo(o.getEnd());
 		}
 		return startCompare;
 	}
